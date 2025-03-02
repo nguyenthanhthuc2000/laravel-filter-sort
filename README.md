@@ -18,7 +18,7 @@ Configure your model
     use LaravelWakeUp\FilterSort\Traits\FilterTrait;
     use LaravelWakeUp\FilterSort\Traits\SortTrait;
 
-    class Category extends Model
+    class YourModel extends Model
     {
         use FilterTrait, SortTrait;
     }
@@ -51,8 +51,12 @@ Get started
 
 #### Filter (only LIKE)
 
-```http
+```bash
   YourModel::filter($request)->get();
+```
+
+```http
+  GET /users?name=John
 ```
 
 | Parameter | Type     | Description                |
@@ -61,8 +65,12 @@ Get started
 
 #### Sort, default parameter is `id` and `asc`
 
-```http
+```bash
   YourModel::sort($request)->get();
+```
+
+```http
+  GET /users?sort=name&order=asc
 ```
 
 | Parameter | Sample value     | Description                       |
