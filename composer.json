@@ -1,6 +1,6 @@
 {
     "name": "laravelwakeup/filter-sort",
-    "description": "Filter Sort is a powerful Laravel package.",
+    "description": "Filter Sort is a powerful Laravel package that supports searching and filtering saving your development time.",
     "type": "library",
     "license": "MIT",
     "keywords": ["laravel", "Filter sort package"],
