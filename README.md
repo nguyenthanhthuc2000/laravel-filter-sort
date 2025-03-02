@@ -52,7 +52,7 @@ Get started
 #### Filter (only LIKE)
 
 ```http
-  GET YourModel::filter($request)->get();
+  YourModel::filter($request)->get();
 ```
 
 | Parameter | Type     | Description                |
@@ -62,7 +62,7 @@ Get started
 #### Sort, default parameter is `id` and `asc`
 
 ```http
-  GET YourModel::sort($request)->get();
+  YourModel::sort($request)->get();
 ```
 
 | Parameter | Sample value     | Description                       |
