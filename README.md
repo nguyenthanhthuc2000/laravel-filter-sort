@@ -1,3 +1,4 @@
+
 # Filter and sort package for Laravel
 
 Filter Sort is a powerful Laravel package that supports searching and filtering saving your development time.
@@ -23,6 +24,12 @@ Configure your model
     }
 ```
 
+Publish configuration (optional)
+
+```bash
+    php artisan vendor:publish --tag=laravel-filter-sort-config
+```
+
 If you want to constrain fields that can be Filtered, in your model...
 
 ```bash
@@ -40,12 +47,30 @@ Get started
 ```bash
    YourModel::filter($request)->sort($request)->get();
 ```
+## Using 
 
-Publish configuration (optional)
+#### Filter (only LIKE)
 
-```bash
-    php artisan vendor:publish --tag=laravel-filter-sort-config
+```http
+  GET YourModel::filter($request)->get();
 ```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| **{field}** | **value** | Filter by value of column {field} |
+
+#### Sort, default value is `id`
+
+```http
+  GET YourModel::sort($request)->get();
+```
+
+| Parameter | Sample value     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| **sort**      | **name** | Column to sort |
+| **order**      | **asc** or **desc** | Sort order |
+
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
