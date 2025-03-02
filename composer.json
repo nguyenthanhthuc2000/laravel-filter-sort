@@ -1,0 +1,30 @@
+{
+    "name": "laravelwakeup/filter-sort",
+    "description": "Filter Sort is a powerful Laravel package.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "Filter sort package"],
+    "autoload": {
+        "psr-4": {
+            "LaravelWakeUp\\FilterSort\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Thức Nguyễn",
+            "email": "nguyenthanhthuc.2k@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "illuminate/support": "^12.0 || ^11.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "LaravelWakeUp\\FilterSort\\Providers\\FilterSortServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}
