@@ -59,7 +59,7 @@ Get started
 | :-------- | :------- | :------------------------- |
 | **{field}** | **value** | Filter by value of column {field} |
 
-#### Sort, default value is `id`
+#### Sort, default parameter is `id` and `asc`
 
 ```http
   GET YourModel::sort($request)->get();
