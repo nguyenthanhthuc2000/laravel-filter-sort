@@ -7,7 +7,7 @@ Package này cung cấp một trait `FilterTrait` và `SortTrait` để giúp l�
 ### Cài đặt
 
 ```bash
-    composer require laravelwakeup/filter-sort:@dev
+composer require laravelwakeup/filter-sort:@dev
 ```
 
 1. Thêm trait `FilterTrait` và `SortTrait` vào Model của bạn:
@@ -24,7 +24,7 @@ class Post extends Model
     protected array $allowedSorts = ['id'];
 }
 ```
-Mặc định nếu không thêm hoặc thêm với mảng rỗng sẽ cho phép filter và sort tất cả các trường trong bảng của bạn.
+Mặc định nếu không thêm hoặc thêm `$allowedFilters` và `$allowedSorts` với mảng rỗng sẽ cho phép filter và sort tất cả các trường trong bảng của bạn. Ngược lại sẽ giới hạn các trường hợp lệ.
 
 2. Sử dụng `scopeFilter` và `scopeSort` trong Query Builder:
 ```php
