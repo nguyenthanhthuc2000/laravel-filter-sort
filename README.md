@@ -5,6 +5,11 @@ Package này cung cấp một trait `FilterTrait` và `SortTrait` để giúp l�
 
 ## Cách sử dụng
 ### Cài đặt
+
+```bash
+    composer require laravelwakeup/filter-sort:@dev
+```
+
 1. Thêm trait `FilterTrait` và `SortTrait` vào Model của bạn:
 ```php
 use LaravelWakeUp\FilterSort\Traits\FilterTrait;
