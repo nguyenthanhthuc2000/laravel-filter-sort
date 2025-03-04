@@ -1,82 +1,77 @@
+# Filter Sort Scope for Laravel
 
-# Filter and sort package for Laravel
+## Giới thiệu
+Package này cung cấp một trait `FilterTrait` và `SortTrait` để giúp lọc và sort dữ liệu linh động với nhiều toán tử khác nhau trong Laravel Eloquent.
 
-Filter Sort is a powerful Laravel package that supports searching and filtering saving your development time.
+## Cách sử dụng
+### Cài đặt
+1. Thêm trait `FilterTrait` và `SortTrait` vào Model của bạn:
+```php
+use LaravelWakeUp\FilterSort\Traits\FilterTrait;
+use LaravelWakeUp\FilterSort\Traits\SortTrait;
 
+class Post extends Model
+{
+    use FilterTrait, SortTrait;
+    
+    protected array $allowedFilters = ['title', 'created_at', 'status'];
 
-## Installation
+    protected array $allowedSorts = ['id'];
+}
+```
+Mặc định nếu không thêm hoặc thêm với mảng rỗng sẽ cho phép filter và sort tất cả các trường trong bảng của bạn.
 
-Install this package with composer
-
-```bash
-    composer require laravelwakeup/filter-sort:@dev
+2. Sử dụng `scopeFilter` và `scopeSort` trong Query Builder:
+```php
+$posts = Post::query()->filter(request())->sort(request())->get();
 ```
 
-Configure your model
+## Cấu trúc Query String
+Bạn có thể truyền các tham số vào query string để lọc dữ liệu linh hoạt:
 
-```bash
-    use LaravelWakeUp\FilterSort\Traits\FilterTrait;
-    use LaravelWakeUp\FilterSort\Traits\SortTrait;
+### Toán tử hỗ trợ:
+| Toán tử | Query String | Mô tả |
+|---------|-------------|--------|
+| `like` (mặc định) | `title=Laravel` | Lọc dữ liệu với LIKE "%Laravel%" |
+| `eq`  | `status=published&status_op=eq` | Lọc dữ liệu với status = 'published' |
+| `gt`  | `created_at=2023-01-01&created_at_op=gt` | Lọc dữ liệu với created_at > '2023-01-01' |
+| `gte` | `created_at=2023-01-01&created_at_op=gte` | Lọc dữ liệu với created_at >= '2023-01-01' |
+| `lt`  | `created_at=2023-01-01&created_at_op=lt` | Lọc dữ liệu với created_at < '2023-01-01' |
+| `lte` | `created_at=2023-01-01&created_at_op=lte` | Lọc dữ liệu với created_at <= '2023-01-01' |
+| `between` | `created_at=2023-01-01,2023-12-31&created_at_op=between` | Lọc dữ liệu trong khoảng |
+| `notin` | `status=draft,pending&status_op=notin` | Loại bỏ các giá trị trong danh sách |
 
-    class YourModel extends Model
-    {
-        use FilterTrait, SortTrait;
-    }
+### Ví dụ sử dụng
+#### 1. Tìm kiếm gần đúng (LIKE)
+```sh
+/posts?title=Laravel
 ```
-
-Publish configuration (optional)
-
-```bash
-    php artisan vendor:publish --tag=laravel-filter-sort-config
+#### 2. Tìm kiếm chính xác (Equal)
+```sh
+/posts?status=published&status_op=eq
 ```
-
-If you want to constrain fields that can be Filtered, in your model...
-
-```bash
-    protected $allowedFilters = ['name'];
+#### 3. Tìm kiếm lớn hơn / nhỏ hơn
+```sh
+/posts?created_at=2023-01-01&created_at_op=gt
 ```
-
-If you want to limit the fields that can be Sorted, in your model...
-
-```bash
-    protected $allowedSorts = ['name'];
+#### 4. Tìm kiếm theo khoảng (Between)
+```sh
+/posts?created_at=2023-01-01,2023-12-31&created_at_op=between
 ```
-
-Get started
-
-```bash
-   YourModel::filter($request)->sort($request)->get();
+#### 5. Lọc dữ liệu không nằm trong danh sách (Not In)
+```sh
+/posts?status=draft,pending&status_op=notin
 ```
-## Using 
-
-#### Filter (only LIKE)
-
-```bash
-  YourModel::filter($request)->get();
+#### 6. Sort
+```sh
+/posts?sort=id&order=asc
 ```
-
-```http
-  GET /users?name=John
-```
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| **{field}** | **value** | Filter by value of column {field} |
-
-#### Sort, default parameter is `id` and `asc`
-
-```bash
-  YourModel::sort($request)->get();
-```
-
-```http
-  GET /users?sort=name&order=asc
-```
-
-| Parameter | Sample value     | Description                       |
+| Tham số | Giá trị mẩu    | Mô tả  |
 | :-------- | :------- | :-------------------------------- |
-| **sort**      | **name** | Column to sort |
-| **order**      | **asc** or **desc** | Sort order |
+| **sort**      | **id** | Tên cột trong bảng |
+| **order**      | **asc** or **desc** | Điều kiện sort |
+
+
 
 
 ## License
