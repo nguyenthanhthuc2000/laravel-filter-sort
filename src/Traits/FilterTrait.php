@@ -9,25 +9,80 @@ trait FilterTrait
 {
     use ModelHelperTrait;
 
+    public const FILTER_PREFIX_DEFAULT = '_op';
+    public const FILTER_DEFAULT_OPERATOR = 'like';
+
+    /**
+     * Filter operators
+     */
+    public const FILTER_NULL = 'null';
+    public const FILTER_NOT_NULL = 'notNull';
+    public const FILTER_EQUAL = 'eq';
+    public const FILTER_NOT_EQUAL = 'ne';
+    public const FILTER_GREATER_THAN = 'gt';
+    public const FILTER_LESS_THAN = 'lt';
+    public const FILTER_GREATER_THAN_OR_EQUAL = 'gte';
+    public const FILTER_LESS_THAN_OR_EQUAL = 'lte';
+    public const FILTER_BETWEEN = 'between';
+    public const FILTER_NOT_IN = 'notin';
+    public const FILTER_IN = 'in';
+    public const FILTER_LIKE = 'like';
+
+    /**
+     * Get valid operators
+     * 
+     * @return array
+     */
+    protected function getValidOperators(): array
+    {
+        return [
+            self::FILTER_NULL,
+            self::FILTER_NOT_NULL,
+            self::FILTER_EQUAL,
+            self::FILTER_NOT_EQUAL,
+            self::FILTER_GREATER_THAN,
+            self::FILTER_LESS_THAN,
+            self::FILTER_GREATER_THAN_OR_EQUAL,
+            self::FILTER_LESS_THAN_OR_EQUAL,
+            self::FILTER_BETWEEN,
+            self::FILTER_NOT_IN,
+            self::FILTER_IN,
+            self::FILTER_LIKE,
+        ];
+    }
+
     /**
      * Scope Filter
      * 
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param \Illuminate\Http\Request $request
-     * @return Builder
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeFilter(Builder $query, Request $request): Builder
     {
+        $prefix = config('laravel-filter-sort.prefix', self::FILTER_PREFIX_DEFAULT);
         $allowedFilters = $this->getAllowedFilters() ?: $this->getTableColumns();
-        $filters = array_filter($request->query(), fn($value) => !is_null($value) && trim($value) !== '');
+        $filters = $request->query();
 
-        foreach ($filters as $field => $value) {
-            if (str_ends_with($field, '_op')) {
+        // Process value filters
+        $validFilters = array_filter(
+            $filters,
+            fn($value, $field) =>
+            !str_ends_with($field, $prefix)
+            && in_array($field, $allowedFilters),
+            ARRAY_FILTER_USE_BOTH
+        );
+
+        foreach ($validFilters as $field => $value) {
+            $operator = strtolower($filters["{$field}{$prefix}"] ?? self::FILTER_DEFAULT_OPERATOR);
+
+            // Skip if operator is not valid
+            if (!in_array($operator, $this->getValidOperators())) {
                 continue;
             }
 
-            if (in_array($field, $allowedFilters)) {
-                $operator = $request->query("{$field}_op", 'like');
+            // Handle all filters
+            if ($value !== null && trim($value) !== '') {
                 $this->applyFilter($query, $field, $operator, $value);
             }
         }
@@ -36,28 +91,53 @@ trait FilterTrait
     }
 
     /**
-     * Áp dụng filter theo toán tử
+     * Apply filter
      * 
      * @param Builder $query
-     * @param $field
-     * @param $operator
-     * @param $value
+     * @param string $field Field to filter on
+     * @param string $operator Operator to use (must be one of the FILTER_* constants)
+     * @param mixed $value Value to filter by
      */
     protected function applyFilter(Builder $query, string $field, string $operator, mixed $value): void
     {
-        $operator = strtolower($operator);
-
         match ($operator) {
-            'eq' => $this->applyEqualFilter($query, $field, $value),
-            'ne' => $this->applyNotEqualFilter($query, $field, $value),
-            'gt' => $this->applyGreaterThanFilter($query, $field, $value),
-            'lt' => $this->applyLessThanFilter($query, $field, $value),
-            'gte' => $this->applyGreaterThanOrEqualFilter($query, $field, $value),
-            'lte' => $this->applyLessThanOrEqualFilter($query, $field, $value),
-            'between' => $this->applyBetweenFilter($query, $field, $value),
-            'notin' => $this->applyNotInFilter($query, $field, $value),
+            self::FILTER_EQUAL => $this->applyEqualFilter($query, $field, $value),
+            self::FILTER_NOT_EQUAL => $this->applyNotEqualFilter($query, $field, $value),
+            self::FILTER_GREATER_THAN => $this->applyGreaterThanFilter($query, $field, $value),
+            self::FILTER_LESS_THAN => $this->applyLessThanFilter($query, $field, $value),
+            self::FILTER_GREATER_THAN_OR_EQUAL => $this->applyGreaterThanOrEqualFilter($query, $field, $value),
+            self::FILTER_LESS_THAN_OR_EQUAL => $this->applyLessThanOrEqualFilter($query, $field, $value),
+            self::FILTER_BETWEEN => $this->applyBetweenFilter($query, $field, $value),
+            self::FILTER_NOT_IN => $this->applyNotInFilter($query, $field, $value),
+            self::FILTER_IN => $this->applyInFilter($query, $field, $value),
+            self::FILTER_NULL => $this->applyNullFilter($query, $field),
+            self::FILTER_NOT_NULL => $this->applyNotNullFilter($query, $field),
             default => $this->applyLikeFilter($query, $field, $value),
         };
+    }
+
+    /**
+     * Apply Null Filter
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $field
+     * @return void
+     */
+    protected function applyNullFilter(Builder $query, string $field): void
+    {
+        $query->whereNull($field);
+    }
+
+    /**
+     * Apply Not Null Filter
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $field
+     * @return void
+     */
+    protected function applyNotNullFilter(Builder $query, string $field): void
+    {
+        $query->whereNotNull($field);
     }
 
     /**
@@ -182,9 +262,28 @@ trait FilterTrait
         if (is_string($values)) {
             $values = explode(',', $values);
         }
-    
+
         if (is_array($values)) {
             $query->whereNotIn($field, $values);
+        }
+    }
+
+    /**
+     * Apply In Filter
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param $field
+     * @param $value
+     * @return void
+     */
+    protected function applyInFilter(Builder $query, string $field, string|array $values): void
+    {
+        if (is_string($values)) {
+            $values = explode(',', $values);
+        }
+
+        if (is_array($values)) {
+            $query->whereIn($field, $values);
         }
     }
 
@@ -195,8 +294,8 @@ trait FilterTrait
      */
     protected function getAllowedFilters(): array
     {
-        return property_exists($this, 'allowedFilters') 
-            ? $this->allowedFilters 
+        return property_exists($this, 'allowedFilters')
+            ? $this->allowedFilters
             : [];
     }
 }
