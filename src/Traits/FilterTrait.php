@@ -24,7 +24,7 @@ trait FilterTrait
     public const FILTER_GREATER_THAN_OR_EQUAL = 'gte';
     public const FILTER_LESS_THAN_OR_EQUAL = 'lte';
     public const FILTER_BETWEEN = 'between';
-    public const FILTER_NOT_IN = 'notin';
+    public const FILTER_NOT_IN = 'notIn';
     public const FILTER_IN = 'in';
     public const FILTER_LIKE = 'like';
 
@@ -74,13 +74,12 @@ trait FilterTrait
         );
 
         foreach ($validFilters as $field => $value) {
-            $operator = strtolower($filters["{$field}{$prefix}"] ?? self::FILTER_DEFAULT_OPERATOR);
+            $operator = $filters["{$field}{$prefix}"] ?? self::FILTER_DEFAULT_OPERATOR;
 
             // Skip if operator is not valid
             if (!in_array($operator, $this->getValidOperators())) {
                 continue;
             }
-
             // Handle all filters
             if ($value !== null && trim($value) !== '') {
                 $this->applyFilter($query, $field, $operator, $value);
@@ -262,7 +261,6 @@ trait FilterTrait
         if (is_string($values)) {
             $values = explode(',', $values);
         }
-
         if (is_array($values)) {
             $query->whereNotIn($field, $values);
         }

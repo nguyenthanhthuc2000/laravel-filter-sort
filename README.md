@@ -80,7 +80,7 @@ $posts = Post::query()
 | `lt`  | `created_at=2023-01-01&created_at_op=lt` | Filter where created_at < '2023-01-01' |
 | `lte` | `created_at=2023-01-01&created_at_op=lte` | Filter where created_at <= '2023-01-01' |
 | `between` | `created_at=2023-01-01,2023-12-31&created_at_op=between` | Filter data within range |
-| `notin` | `status=draft,pending&status_op=notin` | Exclude values in the list |
+| `notIn` | `status=draft,pending&status_op=notIn` | Exclude values in the list |
 | `in` | `status=draft,pending&status_op=in` | Filter values in the list |
 | `null` | `deleted_at=1&deleted_at_op=null` | Filter where field is NULL |
 | `notNull` | `deleted_at=1&deleted_at_op=notNull` | Filter where field is NOT NULL |
@@ -116,7 +116,7 @@ $posts = Post::query()
 /posts?status=draft,pending&status_op=in
 
 # Exclude list (NOT IN)
-/posts?status=draft,pending&status_op=notin
+/posts?status=draft,pending&status_op=notIn
 ```
 
 ### 4. Sorting
@@ -137,10 +137,10 @@ composer test
 Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
 ## Security
-If you discover any security related issues, please email security@laravelwakeup.com instead of using the issue tracker.
+If you discover any security related issues, please email nguyenthanhthuc.2k@gmail.com instead of using the issue tracker.
 
 ## Credits
-- [LaravelWakeUp](https://github.com/laravelwakeup)
+- [LaravelWakeUp](https://github.com/nguyenthanhthuc20000)
 - [All Contributors](../../contributors)
 
 ## License
