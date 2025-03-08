@@ -70,6 +70,54 @@ $posts = Post::query()
     ->get();
 ```
 
+### 4. Sorting
+The package provides a simple and flexible way to sort your data. Sorting is applied only when sort parameters are present in the request.
+
+```sh
+# Sort by single field
+/posts?id_sort=desc
+
+# Sort by multiple fields (applies in order of appearance)
+/posts?created_at_sort=desc&id_sort=asc
+
+# Combine with filters
+/posts?title=Laravel&status=published&status_op=eq&created_at_sort=desc&id_sort=asc
+```
+
+#### Sorting Parameters
+For any field you want to sort by (e.g., `id`, `created_at`, `title`), append `_sort` to the field name:
+- `{field}_sort`: Set the sort direction
+  - `asc` for ascending order (default if invalid value provided)
+  - `desc` for descending order
+
+#### Multiple Sort Example
+```php
+// Sort by created_at DESC, then by id ASC
+/posts?created_at_sort=desc&id_sort=asc
+
+// Sort by status DESC, created_at DESC, and id ASC
+/posts?status_sort=desc&created_at_sort=desc&id_sort=asc
+```
+
+#### Sorting Configuration
+You can customize sorting behavior in your model:
+
+1. **Restrict Sortable Fields**
+```php
+protected array $allowedSorts = ['id', 'created_at', 'title', 'status'];
+```
+
+2. **Customize Sort Field Suffix**
+You can change the default `_sort` suffix by publishing the config file and modifying the `sort_field_suffix` value:
+```php
+// config/laravel-filter-sort.php
+return [
+    'sort_field_suffix' => '_sort'  // Change this to your preferred suffix
+];
+```
+
+> **Note**: Sorting is only applied when sort parameters are provided in the request. The order of sorting follows the order of parameters in the URL.
+
 ## Available Operators
 | Operator | Query String | Description |
 |---------|-------------|--------|

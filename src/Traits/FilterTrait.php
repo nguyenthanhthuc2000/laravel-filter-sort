@@ -9,7 +9,7 @@ trait FilterTrait
 {
     use ModelHelperTrait;
 
-    public const FILTER_PREFIX_DEFAULT = '_op';
+    public const FILTER_TYPE_SUFFIX = '_op';
     public const FILTER_DEFAULT_OPERATOR = 'like';
 
     /**
@@ -60,7 +60,7 @@ trait FilterTrait
      */
     public function scopeFilter(Builder $query, Request $request): Builder
     {
-        $prefix = config('laravel-filter-sort.prefix', self::FILTER_PREFIX_DEFAULT);
+        $prefix = config('laravel-filter-sort.filter_type_suffix', self::FILTER_TYPE_SUFFIX);
         $allowedFilters = $this->getAllowedFilters() ?: $this->getTableColumns();
         $filters = $request->query();
 
