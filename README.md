@@ -10,12 +10,8 @@
 - [Basic Usage](#basic-usage)
 - [Available Operators](#available-operators)
 - [Examples](#examples)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [Security](#security)
-- [Credits](#credits)
-- [License](#license)
 - [JavaScript Usage](#javascript-usage)
+- [License](#license)
 
 ## Introduction
 This package provides `FilterTrait` and `SortTrait` to help you filter and sort data dynamically with various operators in Laravel Eloquent.
@@ -176,21 +172,6 @@ return [
 # Combined with filters
 /posts?title=Laravel&status=1&status_op=notNull&created_at=2023-01-01&created_at_op=gte&sort=created_at&order=desc
 ```
-
-## Testing
-```bash
-composer test
-```
-
-## Contributing
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
-
-## Security
-If you discover any security related issues, please email nguyenthanhthuc.2k@gmail.com instead of using the issue tracker.
-
-## Credits
-- [LaravelWakeUp](https://github.com/nguyenthanhthuc20000)
-- [All Contributors](../../contributors)
 
 ## JavaScript Usage
 
