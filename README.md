@@ -15,6 +15,7 @@
 - [Security](#security)
 - [Credits](#credits)
 - [License](#license)
+- [JavaScript Usage](#javascript-usage)
 
 ## Introduction
 This package provides `FilterTrait` and `SortTrait` to help you filter and sort data dynamically with various operators in Laravel Eloquent.
@@ -191,6 +192,121 @@ If you discover any security related issues, please email nguyenthanhthuc.2k@gma
 - [LaravelWakeUp](https://github.com/nguyenthanhthuc20000)
 - [All Contributors](../../contributors)
 
+## JavaScript Usage
+
+### Using with qs library
+
+```javascript
+// Installation
+// npm install qs
+// yarn add qs
+
+// Import
+import qs from 'qs';
+// or
+const qs = require('qs');
+
+// Example filters object
+const filters = {
+    // Normal filter
+    name: 'John',
+    name_op: 'like',
+    
+    // Filter with IN operator
+    status: ['active', 'pending'],
+    status_op: 'in',
+    
+    // Filter with BETWEEN operator
+    created_at: ['2023-01-01', '2023-12-31'],
+    created_at_op: 'between',
+    
+    // Filter with NULL operator
+    deleted_at: '1',
+    deleted_at_op: 'null',
+    
+    // Multiple field sorting
+    created_at_sort: 'desc',
+    id_sort: 'asc'
+};
+
+// Convert object to query string
+const queryString = qs.stringify(filters, {
+    arrayFormat: 'comma',    // Convert arrays to comma-separated strings
+    encode: false            // Don't encode special characters
+});
+// Result: name=John&name_op=like&status=active,pending&status_op=in&created_at=2023-01-01,2023-12-31&created_at_op=between&deleted_at=1&deleted_at_op=null&created_at_sort=desc&id_sort=asc
+
+// API call with Axios
+axios.get(`/api/posts?${queryString}`);
+
+// API call with Fetch
+fetch(`/api/posts?${queryString}`);
+
+// API call with jQuery
+$.get(`/api/posts?${queryString}`);
+
+// Parse query string back to object
+const url = window.location.search; // ?name=John&name_op=like...
+const parsed = qs.parse(url, { 
+    ignoreQueryPrefix: true,
+    comma: true  // Parse comma-separated strings back to arrays
+});
+console.log(parsed);
+// {
+//     name: 'John',
+//     name_op: 'like',
+//     status: ['active', 'pending'],
+//     status_op: 'in',
+//     created_at: ['2023-01-01', '2023-12-31'],
+//     created_at_op: 'between',
+//     deleted_at: '1',
+//     deleted_at_op: 'null',
+//     created_at_sort: 'desc',
+//     id_sort: 'asc'
+// }
+```
+
+### Using URLSearchParams (Browser built-in)
+
+```javascript
+// Create a new URLSearchParams instance
+const params = new URLSearchParams();
+
+// Add normal filter
+params.append('name', 'John');
+params.append('name_op', 'like');
+
+// Add filter with IN operator
+params.append('status', 'active,pending');  // Use string directly instead of array.join()
+params.append('status_op', 'in');
+
+// Add filter with BETWEEN operator
+params.append('created_at', '2023-01-01,2023-12-31');  // Use string directly
+params.append('created_at_op', 'between');
+
+// Add filter with NULL operator
+params.append('deleted_at', '1');
+params.append('deleted_at_op', 'null');
+
+// Add sorting
+params.append('created_at_sort', 'desc');
+params.append('id_sort', 'asc');
+
+// Convert to query string and decode it
+const queryString = decodeURIComponent(params.toString());
+// Result: name=John&name_op=like&status=active,pending&status_op=in&created_at=2023-01-01,2023-12-31&created_at_op=between&deleted_at=1&deleted_at_op=null&created_at_sort=desc&id_sort=asc
+
+// API calls
+// With Fetch
+fetch(`/api/posts?${queryString}`);
+
+// With Axios
+axios.get(`/api/posts?${queryString}`);
+
+// With jQuery
+$.get(`/api/posts?${queryString}`);
+
+```
+
 ## License
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
