@@ -23,7 +23,7 @@ This package provides `FilterTrait` and `SortTrait` to help you filter and sort 
 ## Installation & Configuration
 ### 1. Install Package
 ```bash
-composer require laravelwakeup/filter-sort:@dev
+composer require laravelwakeup/filter-sort
 ```
 
 ### 2. Publish Configuration
