@@ -64,6 +64,9 @@ trait FilterTrait
         $allowedFilters = $this->getAllowedFilters() ?: $this->getTableColumns();
         $filters = $request->query();
 
+        // Handle multi-column search
+        $this->handleMultiColumnSearch($query, $filters);
+
         // Process value filters
         $validFilters = array_filter(
             $filters,
@@ -87,6 +90,32 @@ trait FilterTrait
         }
 
         return $query;
+    }
+
+    /**
+     * Handle multi-column search.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param array $filters
+     * @return void
+     */
+    protected function handleMultiColumnSearch(Builder $query, array $filters): void
+    {
+        $multiColumnSearch = $this->getMultiColumnSearch();
+
+        if (
+            !empty($multiColumnSearch) 
+            && isset($multiColumnSearch['search_field']) 
+            && isset($multiColumnSearch['fields']) 
+            && is_array($multiColumnSearch['fields'])
+        ) {
+            $searchField = $multiColumnSearch['search_field'];
+        
+            if (isset($filters[$searchField]) && trim($filters[$searchField]) !== '') {
+                $this->applyMultiColumnSearch($query, $filters[$searchField], $multiColumnSearch['fields']);
+            }
+        }
+        
     }
 
     /**
@@ -294,6 +323,43 @@ trait FilterTrait
     {
         return property_exists($this, 'allowedFilters')
             ? $this->allowedFilters
+            : [];
+    }
+
+    /**
+     * Apply multi-column search to the query.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $searchTerm
+     * @param array $fields
+     * @return void
+     */
+    public function applyMultiColumnSearch(Builder $query, string $searchTerm, array $fields): void
+    {
+        $tableColumns = $this->getTableColumns();
+
+        $query->where(function ($query) use ($fields, $searchTerm, $tableColumns) {
+            foreach ($fields as $field => $operator) {
+                if (in_array($field, $tableColumns)) {
+                    if ($operator === 'like') {
+                        $query->orWhere($field, 'like', "%{$searchTerm}%");
+                    } elseif ($operator === 'eq') {
+                        $query->orWhere($field, '=', $searchTerm);
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Get Multi Column Search
+     * 
+     * @return array
+     */
+    protected function getMultiColumnSearch(): array
+    {
+        return property_exists($this, 'multiColumnSearch')
+            ? $this->multiColumnSearch
             : [];
     }
 }

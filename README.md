@@ -11,6 +11,7 @@
 - [Available Operators](#available-operators)
 - [Examples](#examples)
 - [JavaScript Usage](#javascript-usage)
+- [Multi-Column Search](#multi-column-search)
 - [License](#license)
 
 ## Introduction
@@ -288,6 +289,51 @@ axios.get(`/api/posts?${queryString}`);
 $.get(`/api/posts?${queryString}`);
 
 ```
+
+
+## Multi-Column Search
+
+The multi-column search feature allows you to search across multiple columns using a single search term. This is useful for implementing a search bar that can search across different fields in your database.
+
+### How to Use
+
+1. **Define Multi-Column Search Configuration in Your Model**
+
+   In your Eloquent model, define a `multiColumnSearch` property to specify which fields should be included in the search and the operators to use.
+
+   ```php
+   protected array $multiColumnSearch = [
+       'search_field' => 'search_txt', // The request parameter to use for the search term
+       'fields' => [
+           'username' => 'like',
+           'server' => 'eq',
+           // Add more fields as needed
+       ],
+   ];
+   ```
+
+2. **Use the `filter` Scope in Your Query**
+
+   When querying your model, use the `filter` scope to apply the multi-column search.
+
+   ```php
+   $accounts = Account::filter(request())->get();
+   ```
+
+   Ensure that the request contains the search term with the key specified in `search_field`.
+
+### Example
+
+Suppose you have a search input in your form with the name `search_txt`. When the form is submitted, the `filter` scope will automatically apply the search term to the specified fields using the defined operators.
+
+```html
+<form method="GET" action="/accounts">
+    <input type="text" name="search_txt" placeholder="Search...">
+    <button type="submit">Search</button>
+</form>
+```
+
+This will search the `username` and `server` fields in the `accounts` table using the specified operators.
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
