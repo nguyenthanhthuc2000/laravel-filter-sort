@@ -3,6 +3,7 @@
     "description": "Filter Sort is a powerful Laravel package that supports searching and filtering saving your development time.",
     "type": "library",
     "license": "MIT",
+    "version": "1.0.1",
     "keywords": ["laravel", "Filter sort package"],
     "autoload": {
         "psr-4": {
