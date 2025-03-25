@@ -11,6 +11,8 @@ trait FilterTrait
 
     public const FILTER_TYPE_SUFFIX = '_op';
     public const FILTER_DEFAULT_OPERATOR = 'like';
+    public const FILTER_START_RANGE_SUFFIX = '_start_range';
+    public const FILTER_END_RANGE_SUFFIX = '_end_range';
 
     /**
      * Filter operators
@@ -56,6 +58,7 @@ trait FilterTrait
      * 
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param \Illuminate\Http\Request $request
+     * 
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeFilter(Builder $query, Request $request): Builder
@@ -64,8 +67,8 @@ trait FilterTrait
         $allowedFilters = $this->getAllowedFilters() ?: $this->getTableColumns();
         $filters = $request->query();
 
-        // Handle multi-column search
-        $this->handleMultiColumnSearch($query, $filters);
+        $this->processMultiColumnSearch($query, $filters);
+        $this->processRangeFilters($query, $filters, $allowedFilters);
 
         // Process value filters
         $validFilters = array_filter(
@@ -76,7 +79,12 @@ trait FilterTrait
             ARRAY_FILTER_USE_BOTH
         );
 
+        // Process other filters
         foreach ($validFilters as $field => $value) {
+            if (str_ends_with($field, self::FILTER_START_RANGE_SUFFIX) || str_ends_with($field, self::FILTER_END_RANGE_SUFFIX)) {
+                continue;
+            }
+
             $operator = $filters["{$field}{$prefix}"] ?? self::FILTER_DEFAULT_OPERATOR;
 
             // Skip if operator is not valid
@@ -93,13 +101,14 @@ trait FilterTrait
     }
 
     /**
-     * Handle multi-column search.
+     * Process multi-column search.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param array $filters
+     * 
      * @return void
      */
-    protected function handleMultiColumnSearch(Builder $query, array $filters): void
+    protected function processMultiColumnSearch(Builder $query, array $filters): void
     {
         $multiColumnSearch = $this->getMultiColumnSearch();
 
@@ -122,9 +131,9 @@ trait FilterTrait
      * Apply filter
      * 
      * @param Builder $query
-     * @param string $field Field to filter on
-     * @param string $operator Operator to use (must be one of the FILTER_* constants)
-     * @param mixed $value Value to filter by
+     * @param string $field
+     * @param string $operator
+     * @param mixed $value
      */
     protected function applyFilter(Builder $query, string $field, string $operator, mixed $value): void
     {
@@ -161,6 +170,7 @@ trait FilterTrait
      * 
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $field
+     * 
      * @return void
      */
     protected function applyNotNullFilter(Builder $query, string $field): void
@@ -174,6 +184,8 @@ trait FilterTrait
      * @param Builder $query
      * @param $field
      * @param $value
+     * 
+     * @return void
      */
     protected function applyNotEqualFilter(Builder $query, string $field, mixed $value): void
     {
@@ -186,6 +198,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyGreaterThanOrEqualFilter(Builder $query, string $field, mixed $value): void
@@ -199,6 +212,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyLessThanOrEqualFilter(Builder $query, string $field, mixed $value): void
@@ -212,6 +226,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyEqualFilter(Builder $query, string $field, mixed $value): void
@@ -225,6 +240,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyGreaterThanFilter(Builder $query, string $field, mixed $value): void
@@ -238,6 +254,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyLessThanFilter(Builder $query, string $field, mixed $value): void
@@ -251,13 +268,12 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyBetweenFilter(Builder $query, string $field, string|array $value): void
     {
-        if (is_string($value)) {
-            $values = explode(',', $value);
-        }
+        $values = is_string($value) ? explode(',', $value) : $value;
 
         if (count($values) === 2) {
             $query->whereBetween($field, [$values[0], $values[1]]);
@@ -270,6 +286,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyLikeFilter(Builder $query, string $field, string $value): void
@@ -283,6 +300,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param $field
      * @param $value
+     * 
      * @return void
      */
     protected function applyNotInFilter(Builder $query, string $field, string|array $values): void
@@ -332,6 +350,7 @@ trait FilterTrait
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $searchTerm
      * @param array $fields
+     * 
      * @return void
      */
     public function applyMultiColumnSearch(Builder $query, string $searchTerm, array $fields): void
@@ -349,6 +368,42 @@ trait FilterTrait
                 }
             }
         });
+    }
+
+    /**
+     * Process Range Filters
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param array $filters
+     * @param array $allowedFilters
+     * 
+     * @return void
+     */
+    protected function processRangeFilters(Builder $query, array $filters, array $allowedFilters): void
+    {
+        $rangeFilters = [];
+        foreach ($filters as $field => $value) {
+            if (str_ends_with($field, self::FILTER_START_RANGE_SUFFIX) || str_ends_with($field, self::FILTER_END_RANGE_SUFFIX)) {
+                $baseField = str_replace([self::FILTER_START_RANGE_SUFFIX, self::FILTER_END_RANGE_SUFFIX], '', $field);
+                if (in_array($baseField, $allowedFilters) && trim($value) !== '') {
+                    $rangeFilters[$baseField][str_ends_with($field, self::FILTER_START_RANGE_SUFFIX) ? 'start' : 'end'] = $value;
+                }
+            }
+        }
+
+        if (count($rangeFilters) > 0) {
+            foreach ($rangeFilters as $field => $range) {
+                if (isset($range['start']) && isset($range['end'])) {
+                    $this->applyFilter($query, $field, self::FILTER_BETWEEN, [$range['start'], $range['end']]);
+                }
+                if (isset($range['start']) && !isset($range['end'])) {
+                    $this->applyFilter($query, $field, self::FILTER_GREATER_THAN, $range['start']);
+                }
+                if (!isset($range['start']) && isset($range['end'])) {
+                    $this->applyFilter($query, $field, self::FILTER_LESS_THAN, $range['end']);
+                }
+            }
+        }
     }
 
     /**

@@ -12,6 +12,7 @@
 - [Examples](#examples)
 - [JavaScript Usage](#javascript-usage)
 - [Multi-Column Search](#multi-column-search)
+- [Range Queries](#range-queries)
 - [License](#license)
 
 ## Introduction
@@ -334,6 +335,46 @@ Suppose you have a search input in your form with the name `search_txt`. When th
 ```
 
 This will search the `username` and `server` fields in the `accounts` table using the specified operators.
+
+## Range Queries
+
+The range query feature allows you to filter records based on a range of values. This is useful for filtering by date ranges, price ranges, etc.
+
+### How to Use
+
+1. **Define Range Inputs in Your Form**
+
+   Use two separate inputs for the start and end of the range. These inputs must have the suffix `_start_range` and `_end_range`, which are fixed and required for the range query to work correctly.
+
+   ```html
+   <form method="GET" action="/accounts">
+       <input type="text" name="price_start_range" placeholder="Start Price">
+       <input type="text" name="price_end_range" placeholder="End Price">
+       <button type="submit">Search</button>
+   </form>
+   ```
+
+   **Note:** The suffixes `_start_range` and `_end_range` are fixed and must be used exactly as shown to ensure the range queries are processed correctly.
+
+2. **Use the `filter` Scope in Your Query**
+
+   When querying your model, use the `filter` scope to apply the range filters.
+
+   ```php
+   $accounts = Account::filter(request())->get();
+   ```
+
+   Ensure that the request contains the start and end values with the appropriate suffixes.
+
+### Example
+
+Suppose you have a form with inputs for `price_start_range` and `price_end_range`. When the form is submitted, the `filter` scope will automatically apply the range filter to the `price` field.
+
+```php
+$accounts = Account::filter(request())->get();
+```
+
+This will filter the `accounts` based on the specified price range.
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
