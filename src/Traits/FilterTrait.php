@@ -67,7 +67,7 @@ trait FilterTrait
         $allowedFilters = $this->getAllowedFilters() ?: $this->getTableColumns();
         $filters = $request->query();
 
-        $this->processMultiColumnSearch($query, $filters);
+        $this->processMultiColumnFilters($query, $filters);
         $this->processRangeFilters($query, $filters, $allowedFilters);
 
         // Process value filters
@@ -108,7 +108,7 @@ trait FilterTrait
      * 
      * @return void
      */
-    protected function processMultiColumnSearch(Builder $query, array $filters): void
+    protected function processMultiColumnFilters(Builder $query, array $filters): void
     {
         $multiColumnSearch = $this->getMultiColumnSearch();
 
@@ -348,21 +348,21 @@ trait FilterTrait
      * Apply multi-column search to the query.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $searchTerm
-     * @param array $fields
+     * @param $searchTerm
+     * @param $fields
      * 
      * @return void
      */
-    public function applyMultiColumnSearch(Builder $query, string $searchTerm, array $fields): void
+    protected function applyMultiColumnSearch(Builder $query, string $searchTerm, array $fields): void
     {
         $tableColumns = $this->getTableColumns();
 
         $query->where(function ($query) use ($fields, $searchTerm, $tableColumns) {
             foreach ($fields as $field => $operator) {
                 if (in_array($field, $tableColumns)) {
-                    if ($operator === 'like') {
+                    if ($operator === self::FILTER_LIKE) {
                         $query->orWhere($field, 'like', "%{$searchTerm}%");
-                    } elseif ($operator === 'eq') {
+                    } elseif ($operator === self::FILTER_EQUAL) {
                         $query->orWhere($field, '=', $searchTerm);
                     }
                 }
