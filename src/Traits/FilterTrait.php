@@ -397,10 +397,10 @@ trait FilterTrait
                     $this->applyFilter($query, $field, self::FILTER_BETWEEN, [$range['start'], $range['end']]);
                 }
                 if (isset($range['start']) && !isset($range['end'])) {
-                    $this->applyFilter($query, $field, self::FILTER_GREATER_THAN, $range['start']);
+                    $this->applyFilter($query, $field, self::FILTER_GREATER_THAN_OR_EQUAL, $range['start']);
                 }
                 if (!isset($range['start']) && isset($range['end'])) {
-                    $this->applyFilter($query, $field, self::FILTER_LESS_THAN, $range['end']);
+                    $this->applyFilter($query, $field, self::FILTER_LESS_THAN_OR_EQUAL, $range['end']);
                 }
             }
         }
