@@ -4,6 +4,8 @@ namespace LaravelWakeUp\FilterSort\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Carbon;
 
 trait FilterTrait
 {
@@ -203,6 +205,9 @@ trait FilterTrait
      */
     protected function applyGreaterThanOrEqualFilter(Builder $query, string $field, mixed $value): void
     {
+        if ($this->isDateColumn($query, $field) && !$this->hasTime($value) && $this->isValidDate($value)) {
+            $value = Carbon::parse($value)->startOfDay();
+        }
         $query->where($field, '>=', $value);
     }
 
@@ -217,6 +222,9 @@ trait FilterTrait
      */
     protected function applyLessThanOrEqualFilter(Builder $query, string $field, mixed $value): void
     {
+        if ($this->isDateColumn($query, $field) && !$this->hasTime($value) && $this->isValidDate($value)) {
+            $value = Carbon::parse($value)->endOfDay();
+        }
         $query->where($field, '<=', $value);
     }
 
@@ -276,7 +284,19 @@ trait FilterTrait
         $values = is_string($value) ? explode(',', $value) : $value;
 
         if (count($values) === 2) {
-            $query->whereBetween($field, [$values[0], $values[1]]);
+            [$startValue, $endValue] = $values;
+            $isDateColumn = $this->isDateColumn($query, $field);
+        
+            if ($isDateColumn) {
+                if ($this->isValidDate($startValue) && !$this->hasTime($startValue)) {
+                    $startValue = Carbon::parse($startValue)->startOfDay();
+                }
+                if ($this->isValidDate($endValue) && !$this->hasTime($endValue)) {
+                    $endValue = Carbon::parse($endValue)->endOfDay();
+                }
+            }
+        
+            $query->whereBetween($field, [$startValue, $endValue]);
         }
     }
 
@@ -416,5 +436,49 @@ trait FilterTrait
         return property_exists($this, 'multiColumnSearch')
             ? $this->multiColumnSearch
             : [];
+    }
+
+    /**
+     * Check is Date Column
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $field
+     * 
+     * @return bool
+     */
+    protected function isDateColumn(Builder $query, string $field): bool
+    {
+        $table = $query->getModel()->getTable();
+        $columnType = Schema::getColumnType($table, $field);
+
+        return in_array($columnType, ['date', 'datetime', 'timestamp']);
+    }
+
+    /**
+     * Check Has Time
+     * 
+     * @param string $date
+     * 
+     * @return bool
+     */
+    protected function hasTime(string $date): bool
+    {
+        return Carbon::parse($date)->format('H:i:s') !== '00:00:00';
+    }
+
+    /**
+     * Is Valid Date
+     * 
+     * @param string $date
+     * @return bool
+     */
+    protected function isValidDate(string $date): bool
+    {
+        try {
+            Carbon::parse($date);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }
