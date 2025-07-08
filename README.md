@@ -1,34 +1,35 @@
 # Filter Sort Scope for Laravel
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/laravelwakeup/filter-sort.svg)](https://packagist.org/packages/laravelwakeup/filter-sort)
-[![License](https://img.shields.io/github/license/laravelwakeup/filter-sort.svg)](LICENSE.md)
+[![Release](https://img.shields.io/packagist/v/laravelwakeup/filter-sort.svg)](https://packagist.org/packages/laravelwakeup/filter-sort)
+[![Downloads](https://img.shields.io/packagist/dt/laravelwakeup/filter-sort.svg)](https://packagist.org/packages/laravelwakeup/filter-sort)
+[![License](https://img.shields.io/packagist/l/laravelwakeup/filter-sort.svg)](https://github.com/nguyenthanhthuc2000/laravel-filter-sort?tab=MIT-1-ov-file)
+
 
 ## Table of Contents
 - [Introduction](#introduction)
 - [Requirements](#requirements)
-- [Installation & Configuration](#installation--configuration)
-- [Basic Usage](#basic-usage)
-- [Available Operators](#available-operators)
-- [Examples](#examples)
-- [JavaScript Usage](#javascript-usage)
-- [Multi-Column Search](#multi-column-search)
-- [Range Queries](#range-queries)
-- [License](#license)
+- [Installation & Configuration](#i-installation--configuration)
+- [Basic Usage](#ii-basic-usage)
+- [Available Operators](#iii-available-operators)
+- [Examples](#iv-examples)
+- [JavaScript Usage](#v-javascript-usage)
+- [License](#vi-license)
 
 ## Introduction
 This package provides `FilterTrait` and `SortTrait` to help you filter and sort data dynamically with various operators in Laravel Eloquent.
 
 ## Requirements
 - PHP >= 8.0
-- Laravel >= 9.0
+- Laravel >= 8.0
 
-## Installation & Configuration
-### 1. Install Package
+## I. Installation & Configuration
+
+#### 1. Install
 ```bash
 composer require laravelwakeup/filter-sort
 ```
 
-### 2. Publish Configuration
+#### 2. Publish Configuration
 ```bash
 php artisan vendor:publish --tag=laravel-filter-sort-config
 ```
@@ -36,13 +37,13 @@ php artisan vendor:publish --tag=laravel-filter-sort-config
 After running the command above, the `laravel-filter-sort.php` config file will be created in your `config/` directory. You can adjust the following settings:
 ```php
 return [
-    // Change the operator suffix (default is '_op')
-    // Example: status_op=eq -> status$op=eq
+    // Example: status_op=eq, status_sort=desc
     'prefix' => '_op',
+    'sort_field_suffix' => '_sort'
 ];
 ```
 
-## Basic Usage
+## II. Basic Usage
 ### 1. Add Traits to Your Model
 ```php
 use LaravelWakeUp\FilterSort\Traits\FilterTrait;
@@ -69,55 +70,7 @@ $posts = Post::query()
     ->get();
 ```
 
-### 4. Sorting
-The package provides a simple and flexible way to sort your data. Sorting is applied only when sort parameters are present in the request.
-
-```sh
-# Sort by single field
-/posts?id_sort=desc
-
-# Sort by multiple fields (applies in order of appearance)
-/posts?created_at_sort=desc&id_sort=asc
-
-# Combine with filters
-/posts?title=Laravel&status=published&status_op=eq&created_at_sort=desc&id_sort=asc
-```
-
-#### Sorting Parameters
-For any field you want to sort by (e.g., `id`, `created_at`, `title`), append `_sort` to the field name:
-- `{field}_sort`: Set the sort direction
-  - `asc` for ascending order (default if invalid value provided)
-  - `desc` for descending order
-
-#### Multiple Sort Example
-```php
-// Sort by created_at DESC, then by id ASC
-/posts?created_at_sort=desc&id_sort=asc
-
-// Sort by status DESC, created_at DESC, and id ASC
-/posts?status_sort=desc&created_at_sort=desc&id_sort=asc
-```
-
-#### Sorting Configuration
-You can customize sorting behavior in your model:
-
-1. **Restrict Sortable Fields**
-```php
-protected array $allowedSorts = ['id', 'created_at', 'title', 'status'];
-```
-
-2. **Customize Sort Field Suffix**
-You can change the default `_sort` suffix by publishing the config file and modifying the `sort_field_suffix` value:
-```php
-// config/laravel-filter-sort.php
-return [
-    'sort_field_suffix' => '_sort'  // Change this to your preferred suffix
-];
-```
-
-> **Note**: Sorting is only applied when sort parameters are provided in the request. The order of sorting follows the order of parameters in the URL.
-
-## Available Operators
+## III. Available Operators
 | Operator | Query String | Description |
 |---------|-------------|--------|
 | `like` (default) | `title=Laravel` | Filter data with LIKE "%Laravel%" |
@@ -132,8 +85,58 @@ return [
 | `null` | `deleted_at=1&deleted_at_op=null` | Filter where field is NULL |
 | `notNull` | `deleted_at=1&deleted_at_op=notNull` | Filter where field is NOT NULL |
 
-## Examples
-### 1. Basic Search
+## IV. Examples
+
+### 1. Sorting
+The package provides a simple and flexible way to sort your data. Sorting is applied only when sort parameters are present in the request.
+
+```sh
+# Sort by single field
+/posts?id_sort=desc
+
+# Sort by multiple fields (applies in order of appearance)
+/posts?created_at_sort=desc&id_sort=asc
+
+# Combine with filters
+/posts?title=Laravel&status=published&status_op=eq&created_at_sort=desc&id_sort=asc
+```
+
+#### 1.1 Sorting Parameters
+For any field you want to sort by (e.g., `id`, `created_at`, `title`), append `_sort` to the field name:
+- `{field}_sort`: Set the sort direction
+  - `asc` for ascending order (default if invalid value provided)
+  - `desc` for descending order
+
+#### 1.2 Multiple Sort Example
+```php
+// Sort by created_at DESC, then by id ASC
+/posts?created_at_sort=desc&id_sort=asc
+
+// Sort by status DESC, created_at DESC, and id ASC
+/posts?status_sort=desc&created_at_sort=desc&id_sort=asc
+```
+
+#### 1.3 Restrict Sortable Fields
+You can customize sorting behavior in your model:
+
+```php
+protected array $allowedSorts = ['id', 'created_at', 'title', 'status'];
+```
+
+#### 1.4 Customize Sort Field Suffix
+You can change the default `_sort` suffix by publishing the config file and modifying the `sort_field_suffix` value:
+```php
+// config/laravel-filter-sort.php
+return [
+    'sort_field_suffix' => '_sort'  // Change this to your preferred suffix
+];
+```
+
+> **Note**: Sorting is only applied when sort parameters are provided in the request. The order of sorting follows the order of parameters in the URL.
+
+### 2. Search
+
+#### 2.1 Basic search
 ```sh
 # Fuzzy search (LIKE)
 /posts?title=Laravel
@@ -148,7 +151,7 @@ return [
 /posts?deleted_at=1&deleted_at_op=notNull
 ```
 
-### 2. Range Search
+#### 2.2 Range Search
 ```sh
 # Greater than
 /posts?created_at=2023-01-01&created_at_op=gt
@@ -157,7 +160,19 @@ return [
 /posts?created_at=2023-01-01,2023-12-31&created_at_op=between
 ```
 
-### 3. List Search
+Use two separate inputs for the start and end of the range. These inputs must have the suffix `_start_range` and `_end_range`, which are fixed and required for the range query to work correctly.
+
+   ```html
+   <form method="GET" action="/accounts">
+       <input type="text" name="price_start_range" placeholder="Start Price">
+       <input type="text" name="price_end_range" placeholder="End Price">
+       <button type="submit">Search</button>
+   </form>
+   ```
+
+   **Note:** The suffixes `_start_range` and `_end_range` are fixed and must be used exactly as shown to ensure the range queries are processed correctly.
+
+#### 2.3 List Search
 ```sh
 # Filter by list (IN)
 /posts?status=draft,pending&status_op=in
@@ -166,18 +181,39 @@ return [
 /posts?status=draft,pending&status_op=notIn
 ```
 
-### 4. Sorting
-```sh
-# Simple sort
-/posts?sort=id&order=asc
+#### 2.4 Multi-Column Search
 
-# Combined with filters
-/posts?title=Laravel&status=1&status_op=notNull&created_at=2023-01-01&created_at_op=gte&sort=created_at&order=desc
+The multi-column search feature allows you to search across multiple columns using a single search term. This is useful for implementing a search bar that can search across different fields in your database.
+
+#### Define Multi-Column Search Configuration in Your Model
+
+   In your Eloquent model, define a `multiColumnSearch` property to specify which fields should be included in the search and the operators to use.
+
+   ```php
+   protected array $multiColumnSearch = [
+       'search_field' => 'search_txt', // The request parameter to use for the search term
+       'fields' => [
+           'username' => 'like',
+           'server' => 'eq',
+           // Add more fields as needed
+       ],
+   ];
+   ```
+
+Suppose you have a search input in your form with the name `search_txt`. When the form is submitted, the `filter` scope will automatically apply the search term to the specified fields using the defined operators.
+
+```html
+<form method="GET" action="/accounts">
+    <input type="text" name="search_txt" placeholder="Search...">
+    <button type="submit">Search</button>
+</form>
 ```
 
-## JavaScript Usage
+This will search the `username` and `server` fields in the `accounts` table using the specified operators.
 
-### Using with qs library
+## V. JavaScript Usage
+
+### 1. Using with qs library
 
 ```javascript
 // Installation
@@ -234,6 +270,7 @@ const parsed = qs.parse(url, {
     ignoreQueryPrefix: true,
     comma: true  // Parse comma-separated strings back to arrays
 });
+
 console.log(parsed);
 // {
 //     name: 'John',
@@ -249,7 +286,7 @@ console.log(parsed);
 // }
 ```
 
-### Using URLSearchParams (Browser built-in)
+### 2. Using URLSearchParams (Browser built-in)
 
 ```javascript
 // Create a new URLSearchParams instance
@@ -291,90 +328,5 @@ $.get(`/api/posts?${queryString}`);
 
 ```
 
-
-## Multi-Column Search
-
-The multi-column search feature allows you to search across multiple columns using a single search term. This is useful for implementing a search bar that can search across different fields in your database.
-
-### How to Use
-
-1. **Define Multi-Column Search Configuration in Your Model**
-
-   In your Eloquent model, define a `multiColumnSearch` property to specify which fields should be included in the search and the operators to use.
-
-   ```php
-   protected array $multiColumnSearch = [
-       'search_field' => 'search_txt', // The request parameter to use for the search term
-       'fields' => [
-           'username' => 'like',
-           'server' => 'eq',
-           // Add more fields as needed
-       ],
-   ];
-   ```
-
-2. **Use the `filter` Scope in Your Query**
-
-   When querying your model, use the `filter` scope to apply the multi-column search.
-
-   ```php
-   $accounts = Account::filter(request())->get();
-   ```
-
-   Ensure that the request contains the search term with the key specified in `search_field`.
-
-### Example
-
-Suppose you have a search input in your form with the name `search_txt`. When the form is submitted, the `filter` scope will automatically apply the search term to the specified fields using the defined operators.
-
-```html
-<form method="GET" action="/accounts">
-    <input type="text" name="search_txt" placeholder="Search...">
-    <button type="submit">Search</button>
-</form>
-```
-
-This will search the `username` and `server` fields in the `accounts` table using the specified operators.
-
-## Range Queries
-
-The range query feature allows you to filter records based on a range of values. This is useful for filtering by date ranges, price ranges, etc.
-
-### How to Use
-
-1. **Define Range Inputs in Your Form**
-
-   Use two separate inputs for the start and end of the range. These inputs must have the suffix `_start_range` and `_end_range`, which are fixed and required for the range query to work correctly.
-
-   ```html
-   <form method="GET" action="/accounts">
-       <input type="text" name="price_start_range" placeholder="Start Price">
-       <input type="text" name="price_end_range" placeholder="End Price">
-       <button type="submit">Search</button>
-   </form>
-   ```
-
-   **Note:** The suffixes `_start_range` and `_end_range` are fixed and must be used exactly as shown to ensure the range queries are processed correctly.
-
-2. **Use the `filter` Scope in Your Query**
-
-   When querying your model, use the `filter` scope to apply the range filters.
-
-   ```php
-   $accounts = Account::filter(request())->get();
-   ```
-
-   Ensure that the request contains the start and end values with the appropriate suffixes.
-
-### Example
-
-Suppose you have a form with inputs for `price_start_range` and `price_end_range`. When the form is submitted, the `filter` scope will automatically apply the range filter to the `price` field.
-
-```php
-$accounts = Account::filter(request())->get();
-```
-
-This will filter the `accounts` based on the specified price range.
-
-## License
+## VI. License
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
