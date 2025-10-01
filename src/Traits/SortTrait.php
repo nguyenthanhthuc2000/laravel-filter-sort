@@ -10,7 +10,6 @@ trait SortTrait
     use ModelHelperTrait;
 
     public const SORT_DEFAULT_FIELD = 'id';
-    public const SORT_DEFAULT_ORDER = 'asc';
     public const SORT_ALLOWED_ORDERS = ['asc', 'desc'];
     public const SORT_FIELD_SUFFIX = '_sort';
 
@@ -43,10 +42,13 @@ trait SortTrait
         foreach ($allowedSorts as $field) {
             $key = "{$field}{$suffix}";
             if ($request->has($key)) {
-                $sorts[] = [
-                    'field' => $field,
-                    'order' => $this->validateSortOrder($request->query($key))
-                ];
+                $order = $this->validateSortOrder($request->query($key));
+                if ($order) {
+                    $sorts[] = [
+                        'field' => $field,
+                        'order' => $order
+                    ];
+                }
             }
         }
 
@@ -67,12 +69,12 @@ trait SortTrait
      * Validate Sort Order
      * 
      * @param mixed $value
-     * @return string
+     * @return string|null
      */
-    protected function validateSortOrder($value): string
+    protected function validateSortOrder($value): string|null
     {
         $value = strtolower((string)$value);
-        return in_array($value, self::SORT_ALLOWED_ORDERS) ? $value : self::SORT_DEFAULT_ORDER;
+        return in_array($value, self::SORT_ALLOWED_ORDERS) ? $value : null;
     }
 
     /**
